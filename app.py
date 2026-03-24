@@ -155,7 +155,7 @@ def main():
             st.success("Графік(и) побудовано успішно! 👌")
 
     st.markdown("---")
-    st.caption("© Шаблінський, 2 курс | Стиль UX/UI — Copilot Pro")
+    st.caption("© Шаблінський, 2 курс | Стиль UX/UI — Pro")
 
 if __name__ == "__main__":
     main()
