@@ -3,9 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sp
 from io import BytesIO
-import matplotlib.animation as animation
-import tempfile
-import os
 
 # --- ГАРНИЙ ФОН І UX СТИЛІ ---
 st.markdown("""
@@ -60,16 +57,16 @@ with st.sidebar:
 3. **Обирайте стиль:**  
    - Можна зафарбувати підграфік або показати похідну.
 4. **Натискайте кнопку  
-   `Побудувати графік` або `Показати анімацію`.**
+   `Побудувати графік`.**
 ---
 <small style="color:#ffeebb;">Доступні функції: sin, cos, tan, exp, ln, sqrt, abs, log(x,осн.)  
 `^` автоматично заміниться на `**`  
 </small>
     """, unsafe_allow_html=True)
     st.markdown("---")
-    st.info("Автор: Шаблінський | Версія 2.6", icon="🎓")
+    st.info("Автор: Шаблінський | Версія 2.7", icon="🎓")
 
-### --- ФУНКЦІЇ ДЛЯ РОЗБОРУ ТА АНІМАЦІЇ ---
+### --- ФУНКЦІЇ ДЛЯ РОЗБОРУ ---
 ALLOWED_FUNCS = {
     'sin': sp.sin, 'cos': sp.cos, 'tan': sp.tan, 
     'exp': sp.exp, 'log': sp.log, 'sqrt': sp.sqrt, 'abs': sp.Abs, 'ln': sp.ln
@@ -86,36 +83,10 @@ def is_supported_functions(expr):
             return False, func.func.__name__
     return True, None
 
-def animate_plot(xx, y, color="#d7263d"):
-    fig, ax = plt.subplots(figsize=(8,5))
-    ln, = ax.plot([], [], color=color, linewidth=2)
-    ax.set_xlim(xx[0], xx[-1])
-    ymin = np.nanmin(np.where(np.abs(y)<1e6, y, np.nan))
-    ymax = np.nanmax(np.where(np.abs(y)<1e6, y, np.nan))
-    ax.set_ylim(ymin-1, ymax+1)
-    ax.grid(True, alpha=0.6)
-    def update(n):
-        ln.set_data(xx[:n], y[:n])
-        return ln,
-    ani = animation.FuncAnimation(fig, update, frames=len(xx), blit=True, interval=10)
-
-    # Збереження у тимчасовий gif-файл, потім у BytesIO
-    with tempfile.NamedTemporaryFile(suffix=".gif", delete=False) as tmp:
-        tmp_path = tmp.name
-    try:
-        ani.save(tmp_path, writer="pillow")
-        with open(tmp_path, "rb") as f:
-            buf = BytesIO(f.read())
-        buf.seek(0)
-    finally:
-        os.remove(tmp_path)
-        plt.close(fig)
-    return buf
-
 # --- ГОЛОВНА ПРОГРАМА ---
 def main():
-    st.markdown("<h1>GraphPlot – Візуалізація та анімація математични�� функцій</h1>", unsafe_allow_html=True)
-    st.info("Введіть одну або декілька функцій, побудуйте графіки і навіть перегляньте анімацію. Все просто та безпечно!", icon="🔔")
+    st.markdown("<h1>GraphPlot – Візуалізація математичних функцій</h1>", unsafe_allow_html=True)
+    st.info("Введіть одну або декілька функцій, побудуйте графіки. Все просто та безпечно!", icon="🔔")
 
     st.subheader("🔢 Ваші функції")
     st.text("Введіть математичні вирази через кому (наприклад: sin(x), cos(x), x^2)")
@@ -205,21 +176,6 @@ def main():
         if error_cnt==0:
             st.success("Графік(и) побудовано успішно! 👌")
 
-    # --- АНІМАЦІЯ ГРАФІКА ---
-    st.markdown("#### 🌀 Анімація для першої функції (опціонально):")
-    if st.button("▶️ Показати анімацію першої функції"):
-        if functions:
-            try:
-                expr = sp.sympify(functions[0], locals=ALLOWED_FUNCS)
-                f_lambd = sp.lambdify(x, expr, 'numpy')
-                y = f_lambd(xx)
-                buf = animate_plot(xx, y)
-                st.image(buf.getvalue(), format="gif")
-                st.info("Анімація намальована для першої функції.")
-            except Exception as e:
-                st.error(f"❌ Неможливо анімувати: {e}")
-        else:
-            st.warning("Введіть принаймні одну функцію.")
     st.markdown("---")
     st.caption("© Шаблінський, 2 курс  Pro  graphplot 2026")
 
