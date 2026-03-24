@@ -4,78 +4,65 @@ import matplotlib.pyplot as plt
 import sympy as sp
 from io import BytesIO
 
-# --- ГАРНИЙ ФОН І UX СТИЛІ ---
-st.markdown("""
-    <style>
-    [data-testid="stAppViewContainer"] {
-        background: linear-gradient(120deg, #232946 0%, #273469 70%, #b2c2e6 100%);
-        color: #eef9fc;
-    }
-    .block-container {
-        max-width: 900px;
-        margin: auto;
-        background: rgba(255,255,255,0.07);
-        border-radius: 18px;
-        padding: 36px 24px 24px 24px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.13);
-        backdrop-filter: blur(6px);
-    }
-    label, .stTextInput label, .stNumberInput label {
-        color: #222448 !important;
-        font-weight: 600;
-    }
-    h1, .stApp h1 {
-        font-family: 'Arial Black', sans-serif !important;
-        color: #eeb96b;
-        text-align:center;
-        letter-spacing: 1px;
-        text-shadow: 1px 2px 15px #000A;
-    }
-    .stButton>button {
-        border-radius: 22px !important;
-        font-weight: 700 !important;
-        background: #ffb700;
-        color: #222 !important;
-        box-shadow: 1px 1px 9px #0009;
-        padding: 0.5em 2em;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-##### --- SIDEBAR: покрокова інструкція ---
+# === ЮЗЕРСЬКИЙ ВИБІР ТЕМИ (світла/темна) ===
 with st.sidebar:
+    st.markdown("## 🎨 Вибір теми")
+    theme = st.radio("Виберіть стиль фону:", ("Світла", "Темна"), horizontal=True)
+    custom_css = ""
+    if theme == "Світла":
+        custom_css = """
+        <style>
+        .block-container {
+            background: rgba(255,255,255,0.94);
+            border-radius: 18px;
+            box-shadow: 0 4px 20px 0 rgba(180,190,200,0.09);
+        }
+        h1, .stApp h1 {
+            color: #232946;
+        }
+        </style>
+        """
+    else:
+        custom_css = """
+        <style>
+        .block-container {
+            background: linear-gradient(120deg, #232946 0%, #273469 70%, #b2c2e6 100%);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.13);
+        }
+        h1, .stApp h1 {
+            color: #eeb96b;
+            text-shadow: 1px 2px 15px #000A;
+        }
+        label, .stTextInput label, .stNumberInput label {
+            color: #eeb96b !important;
+        }
+        </style>
+        """
+    st.markdown("---")
     st.markdown(
-        "<h2 style='color:#ffea80;text-align:center;'>📚 Інструкція</h2>", 
+        "<h2 style='color:#ffea80;text-align:center;'>📚 Інструкція</h2>"
+        "<ol>"
+        "<li><b>Введіть функції</b> через кому: <code>sin(x), cos(x), ln(x)</code></li>"
+        "<li><b>Задайте межі X</b></li>"
+        "<li><b>Обирайте стиль</b>, натискайте <b>Побудувати графік</b></li>"
+        "</ol>"
+        "<small style='color:#ffeebb;'>Доступні: sin, cos, tan, exp, ln, sqrt, abs...</small>",
         unsafe_allow_html=True
     )
-    st.markdown("""
-1. **Введіть функції** через кому.  
-    _Наприклад:_  
-    `sin(x)`, `x**2-2*x+1`, `exp(-x)*cos(x)`
-2. **Визначте межі X:**  
-   (наприклад, від -5 до 5)
-3. **Обирайте стиль:**  
-   - Можна зафарбувати підграфік або показати похідну.
-4. **Натискайте кнопку  
-   `Побудувати графік`.**
----
-<small style="color:#ffeebb;">Доступні функції: sin, cos, tan, exp, ln, sqrt, abs, log(x,осн.)  
-`^` автоматично заміниться на `**`  
-</small>
-    """, unsafe_allow_html=True)
-    st.markdown("---")
-    st.info("Автор: Шаблінський | Версія 2.7", icon="🎓")
+    st.info("Автор: Шаблінський | Версія 2.8", icon="🎓")
 
-### --- ФУНКЦІЇ ДЛЯ РОЗБОРУ ---
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# --- СЛУЖБОВІ ФУНКЦІЇ ---
 ALLOWED_FUNCS = {
-    'sin': sp.sin, 'cos': sp.cos, 'tan': sp.tan, 
+    'sin': sp.sin, 'cos': sp.cos, 'tan': sp.tan,
     'exp': sp.exp, 'log': sp.log, 'sqrt': sp.sqrt, 'abs': sp.Abs, 'ln': sp.ln
 }
 ALLOWED_FUNCNAMES = set(ALLOWED_FUNCS.keys())
 
 def clean_function_input(raw):
-    s = raw.replace('^', '**')
-    return s
+    return raw.replace('^', '**')
 
 def is_supported_functions(expr):
     for func in expr.atoms(sp.Function):
@@ -87,9 +74,8 @@ def is_supported_functions(expr):
 def main():
     st.markdown("<h1>GraphPlot – Візуалізація математичних функцій</h1>", unsafe_allow_html=True)
     st.info("Введіть одну або декілька функцій, побудуйте графіки. Все просто та безпечно!", icon="🔔")
-
     st.subheader("🔢 Ваші функції")
-    st.text("Введіть математичні вирази через кому (наприклад: sin(x), cos(x), x^2)")
+    st.text("Введіть через кому, напр.: sin(x), cos(x), x^2")
     func_input = st.text_input("Функції для побудови:", "sin(x), exp(-x)*cos(x)")
     latex_show = st.checkbox("Показати формули у LaTeX", value=True)
 
@@ -120,7 +106,6 @@ def main():
     xx = np.linspace(x_min, x_max, num_points)
     functions = [s for s in [clean_function_input(f.strip()) for f in func_input.split(",")] if s]
 
-    # --- КНОПКА ГРАФІК ---
     if st.button("🎨 Побудувати графік 🚀"):
         fig, ax = plt.subplots(figsize=(9,5))
         colors = ["#d7263d", "#305aa5", "#198c2e", "#8338ec", "#ff9700", "#808000", "#1e656d"]
@@ -177,7 +162,7 @@ def main():
             st.success("Графік(и) побудовано успішно! 👌")
 
     st.markdown("---")
-    st.caption("© Шаблінський, 2 курс  Pro  graphplot 2026")
+    st.caption("© Шаблінський, 2 курс  graphplot 2026")
 
 if __name__ == "__main__":
     main()
