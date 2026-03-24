@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import sympy as sp
 from io import BytesIO
 import matplotlib.animation as animation
+import tempfile
+import os
 
 # --- ГАРНИЙ ФОН І UX СТИЛІ ---
 st.markdown("""
@@ -65,7 +67,7 @@ with st.sidebar:
 </small>
     """, unsafe_allow_html=True)
     st.markdown("---")
-    st.info("Автор: Шаблінський | Версія 2.5", icon="🎓")
+    st.info("Автор: Шаблінський | Версія 2.6", icon="🎓")
 
 ### --- ФУНКЦІЇ ДЛЯ РОЗБОРУ ТА АНІМАЦІЇ ---
 ALLOWED_FUNCS = {
@@ -75,12 +77,10 @@ ALLOWED_FUNCS = {
 ALLOWED_FUNCNAMES = set(ALLOWED_FUNCS.keys())
 
 def clean_function_input(raw):
-    """Стандартні заміни неправильних записів для формул."""
     s = raw.replace('^', '**')
     return s
 
 def is_supported_functions(expr):
-    """Перевіряє, чи всі функції у виразі дозволені."""
     for func in expr.atoms(sp.Function):
         if func.func.__name__ not in ALLOWED_FUNCNAMES:
             return False, func.func.__name__
@@ -98,15 +98,23 @@ def animate_plot(xx, y, color="#d7263d"):
         ln.set_data(xx[:n], y[:n])
         return ln,
     ani = animation.FuncAnimation(fig, update, frames=len(xx), blit=True, interval=10)
-    buf = BytesIO()
-    ani.save(buf, writer="pillow")  # <-- Фікс: без 'format'
-    buf.seek(0)
-    plt.close(fig)
+
+    # Збереження у тимчасовий gif-файл, потім у BytesIO
+    with tempfile.NamedTemporaryFile(suffix=".gif", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        ani.save(tmp_path, writer="pillow")
+        with open(tmp_path, "rb") as f:
+            buf = BytesIO(f.read())
+        buf.seek(0)
+    finally:
+        os.remove(tmp_path)
+        plt.close(fig)
     return buf
 
 # --- ГОЛОВНА ПРОГРАМА ---
 def main():
-    st.markdown("<h1>GraphPlot – Візуалізація та анімація математичних функцій</h1>", unsafe_allow_html=True)
+    st.markdown("<h1>GraphPlot – Візуалізація та анімація математични�� функцій</h1>", unsafe_allow_html=True)
     st.info("Введіть одну або декілька функцій, побудуйте графіки і навіть перегляньте анімацію. Все просто та безпечно!", icon="🔔")
 
     st.subheader("🔢 Ваші функції")
