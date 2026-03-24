@@ -50,7 +50,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     st.markdown("""
-1. **Введіть функції** через ком��.  
+1. **Введіть функції** через кому.  
     _Наприклад:_  
     `sin(x)`, `x**2-2*x+1`, `exp(-x)*cos(x)`
 2. **Визначте межі X:**  
@@ -66,7 +66,6 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     st.markdown("---")
     st.info("Автор: Шаблінський | Версія 2.5", icon="🎓")
-
 
 ### --- ФУНКЦІЇ ДЛЯ РОЗБОРУ ТА АНІМАЦІЇ ---
 ALLOWED_FUNCS = {
@@ -91,7 +90,6 @@ def animate_plot(xx, y, color="#d7263d"):
     fig, ax = plt.subplots(figsize=(8,5))
     ln, = ax.plot([], [], color=color, linewidth=2)
     ax.set_xlim(xx[0], xx[-1])
-    # для нескінченностей — обрізаємо ylim
     ymin = np.nanmin(np.where(np.abs(y)<1e6, y, np.nan))
     ymax = np.nanmax(np.where(np.abs(y)<1e6, y, np.nan))
     ax.set_ylim(ymin-1, ymax+1)
@@ -101,8 +99,9 @@ def animate_plot(xx, y, color="#d7263d"):
         return ln,
     ani = animation.FuncAnimation(fig, update, frames=len(xx), blit=True, interval=10)
     buf = BytesIO()
-    ani.save(buf, writer="pillow", format="gif")
+    ani.save(buf, writer="pillow")  # <-- Фікс: без 'format'
     buf.seek(0)
+    plt.close(fig)
     return buf
 
 # --- ГОЛОВНА ПРОГРАМА ---
